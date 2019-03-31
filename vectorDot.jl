@@ -1,6 +1,12 @@
 module vectorDot
     using SymEngine
-    export vecSym, dot
+    using Latexify
+    export vecSym, dot, scalarTimes, vecAdd, nice, *, +
+    
+    function nice(tt::Basic)
+        latexify(convert(Expr,tt))
+    end
+
     struct vecSym <: Number
         name::String
         function vecSym(x::String)
@@ -9,8 +15,11 @@ module vectorDot
     end
 
     function Base.show(io::IO, vec::vecSym)
-        print(io, ("\033[1m"*vec.name*"\x1b[0m"))
-                   # Black \033[1m;Oringe:\x1b[1;31m;normal:\x1b[0m
+    #print(io, latex(Sym(vec.name),mode="equation*"))
+   # print(io, latexify(vec.name))
+    print(io, vec.name)
+   # print(io, "\033[1m"*vec.name*"\x1b[0m")
+               # Black \033[1m;Oringe:\x1b[1;31m;normal:\x1b[0m
     end
 
     struct scalarTimes
@@ -31,26 +40,31 @@ module vectorDot
     end
 
     function Base.show(io::IO, y::vecAdd)
-        print(io, "+","(",y.veca,")")
+        print(io, "+",y.veca)
     end
 
     import Base.*
     *(x::Basic,y::vecSym)= scalarTimes(x,y)
     import Base.+
     +(x::vecSym,y::vecSym)= vecAdd((x,y))
-    +(x::vecSym,y...)= vecAdd((x,y...))
+    #+(x::vecSym,y...)= vecAdd((x,y...))
     +(x::scalarTimes,y::vecSym)= vecAdd((x,y))
     +(x::scalarTimes,y::scalarTimes)= vecAdd((x,y))
-    +(x::scalarTimes,y...)= vecAdd((x,y...))
-    +(x::Tuple)= vecAdd(x)
+   # +(x::scalarTimes,y...)= vecAdd((x,y...))
+    +(x::vecAdd,y::scalarTimes)= vecAdd(((x.veca)...,y))
+    +(y::scalarTimes,x::vecAdd)=  +(x,y)
+    +(x::vecAdd,y::vecSym)= vecAdd(((x.veca)...,y))
+    +(y::vecSym, x::vecAdd)= vecAdd((y, (x.veca)...))
+    +(y::vecAdd, x::vecAdd)= vecAdd(((y.veca)..., (x.veca)...))
+    #+(x::Tuple)= vecAdd(x)
 
     function dot(x::vecSym,y::vecSym)
         xn=x.name;
         yn=y.name;
         if x.name<y.name 
-            return symbols("$x"*"⋅"*"$y")
+                return symbols("("*"$x"*"⋅"*"$y"*")")
         else
-            return symbols("$y"*"⋅"*"$x")
+            dot(y,x)
         end
     end
 
