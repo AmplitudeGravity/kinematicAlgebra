@@ -4,7 +4,8 @@ module vectorDot
     export vecSym, dot, scalarTimes, vecAdd, nice, *, +
     
     function nice(tt::Basic)
-        latexify(convert(Expr,tt))
+        tts=string(tt);
+        display( MIME("text/latex"),"\$ $tts \$ ")
     end
 
     struct vecSym <: Number
@@ -13,14 +14,20 @@ module vectorDot
             new(x)
         end
     end
-
     function Base.show(io::IO, vec::vecSym)
+        Base.show(io, MIME("text/latex"), vec)
+    end
+    function Base.show(io::IO, ::MIME"text/latex", vec::vecSym)
+        nm=vec.name;
+        print(io, "\$ $nm \$")
+    end
+   # function Base.show(io::IO, vec::vecSym)
     #print(io, latex(Sym(vec.name),mode="equation*"))
    # print(io, latexify(vec.name))
-    print(io, vec.name)
+  #  print(io, vec.name)
    # print(io, "\033[1m"*vec.name*"\x1b[0m")
                # Black \033[1m;Oringe:\x1b[1;31m;normal:\x1b[0m
-    end
+   # end
 
     struct scalarTimes
         scalar::Basic
@@ -30,7 +37,11 @@ module vectorDot
         end
     end
     function Base.show(io::IO, y::scalarTimes)
-        print(io,y.scalar,y.vec)
+        Base.show(io, MIME("text/latex"), y)
+    end
+    function Base.show(io::IO, ::MIME"text/latex",y::scalarTimes)
+        nm=string(y.scalar);
+        print(io,"\$ $nm \$",y.vec)
     end
     struct vecAdd
         veca
@@ -38,8 +49,10 @@ module vectorDot
             new(x)
         end
     end
-
     function Base.show(io::IO, y::vecAdd)
+        Base.show(io, MIME("text/latex"), y)
+    end
+    function Base.show(io::IO, ::MIME"text/latex", y::vecAdd)
         print(io, "+",y.veca)
     end
 
@@ -62,7 +75,7 @@ module vectorDot
         xn=x.name;
         yn=y.name;
         if x.name<y.name 
-                return symbols("("*"$x"*"⋅"*"$y"*")")
+              return symbols("$xn"*"⋅"*"$yn")
         else
             dot(y,x)
         end
